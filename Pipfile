@@ -4,12 +4,15 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-prefect = "*"
 httpx = "*"
 tushare = "*"
 prefect-docker = "*"
+pandas = "*"
+prefect = {extras = ["shell"], version = "*"}
+huggingface-hub = "*"
 
 [dev-packages]
+pytest = "*"
 
 [requires]
 python_version = "3.11"
