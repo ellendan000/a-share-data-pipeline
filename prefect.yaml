@@ -1,0 +1,9 @@
+name: cicd-deployment
+prefect-version: 3.0.0
+
+# pull: null
+deployments:
+  - name: non-fq-daily-kline
+    entrypoint: market/non_fq_daily_kline.py:fetch_non_fq_daily_kline
+    work_pool:
+      name: remote-work-pool
