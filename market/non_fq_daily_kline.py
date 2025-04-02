@@ -134,7 +134,6 @@ def fetch_non_fq_daily_kline() -> None:
         print(f"正在获取 {row['ts_code']} 的日线数据")
         kline_df = fetch_daily_price(row, '20050101', end_date)
         append_to_csv(kline_df, LOCAL_FILE_PATH)
-        break
 
     upload_to_hf_datasets(LOCAL_FILE_PATH, end_date)
 
