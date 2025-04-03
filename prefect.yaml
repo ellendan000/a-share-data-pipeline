@@ -7,3 +7,7 @@ deployments:
     entrypoint: market/non_fq_daily_kline.py:fetch_non_fq_daily_kline
     work_pool:
       name: remote-work-pool
+    work_queue_name: default
+    infrastructure:
+      type: process
+      working_dir: .
