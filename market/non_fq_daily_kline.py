@@ -11,7 +11,7 @@ from prefect.blocks.system import Secret
 from prefect.cache_policies import INPUTS
 from prefect.concurrency.sync import rate_limit
 
-LOCAL_FILE_PATH = "non_fq_daily_klines.csv"
+LOCAL_FILE_PATH = "data/non_fq_daily_klines.csv"
 HF_DATASET_NAME = "ellendan/a-share-prices"
 
 tushare_secret_block = Secret.load("tushare-token")
@@ -24,7 +24,7 @@ ts.set_token(tushare_secret_block.get())
     cache_expiration=timedelta(hours=1)
 )
 def fetch_stock_list() -> DataFrame:
-    """Task 1: 获取最新的主板股票清单"""
+    """Task 2: 获取最新的主板股票清单"""
     df = ts.pro_api().stock_basic(
         exchange='SSE,SZSE',
         fields=[
@@ -66,15 +66,16 @@ def fetch_daily_index(ts_code: str, start_date: str, end_date: str) -> DataFrame
 
 @task
 def fetch_daily_price(stock_series: Series, start_date: str, end_date: str) -> DataFrame:
-    """Task 2: 抓取非复权日线数据"""
+    """Task 3: 抓取非复权日线数据"""
     rate_limit("tushare-daily-api")
     ts_code = stock_series['ts_code']
-    kline_df = fetch_daily_kline(
+    kline_df = fetch_daily_kline.submit(
         ts_code=ts_code, start_date=start_date, end_date=end_date)
-    limit_df = fetch_limit_price(
+    limit_df = fetch_limit_price.submit(
         ts_code=ts_code, start_date=start_date, end_date=end_date)
-    index_df = fetch_daily_index(
-        ts_code=ts_code, start_date=start_date, end_date=end_date)
+    index_df = fetch_daily_index.submit(
+        ts_code=ts_code, start_date=start_date, end_date=end_date)  
+    kline_df, limit_df, index_df = kline_df.result(), limit_df.result(), index_df.result()
     merged_df = pd.concat([kline_df, limit_df, index_df], axis=1)
 
     stock_info_df = stock_series.to_frame().transpose()
@@ -87,7 +88,7 @@ def fetch_daily_price(stock_series: Series, start_date: str, end_date: str) -> D
 
 @task
 def append_to_csv(stock_df: DataFrame, file_path: str) -> None:
-    """Task 3: 写入 csv"""
+    """Task 4: 写入 csv"""
     stock_df.rename(columns={
         'pre_close': 'prev_close',
         'pct_chg': 'quote_rate',
@@ -111,7 +112,7 @@ def append_to_csv(stock_df: DataFrame, file_path: str) -> None:
 
 @task
 def upload_to_hf_datasets(file_path: str, end_date: str) -> None:
-    """Task 4: 上传到 Hugging Face Datasets"""
+    """Task 5: 上传到 Hugging Face Datasets"""
     print("上传到 Hugging Face Datasets")
     hf_api = HfApi(token=Secret.load("hf-token").get())
     csv_file_name = f"non-fq-daily-klines-{end_date}.csv"
@@ -122,21 +123,29 @@ def upload_to_hf_datasets(file_path: str, end_date: str) -> None:
         repo_type="dataset",
         repo_id=HF_DATASET_NAME
     )
+    
+@task
+def setup_data_dir() -> None:
+    """Task 1: 设置数据目录"""
+    if Path(LOCAL_FILE_PATH).exists():
+        Path(LOCAL_FILE_PATH).unlink()
+    Path(LOCAL_FILE_PATH).parent.mkdir(parents=True, exist_ok=True)
+
 
 @flow(log_prints=True)
 def fetch_non_fq_daily_kline() -> None:
     """Flow: 抓取非复权日线数据"""
+    setup_data_dir()
     stock_list = fetch_stock_list()
     print(f"主板股票数量: {stock_list.shape[0]}")
 
     end_date = datetime.now().strftime("%Y%m%d")
-    for _, row in stock_list.iterrows():
-        print(f"正在获取 {row['ts_code']} 的日线数据")
+    for i, row in stock_list.iterrows():
+        print(f"正在获取 {row['ts_code']} 的日线数据，整体进度 {i+1}/{stock_list.shape[0]}")
         kline_df = fetch_daily_price(row, '20050101', end_date)
         append_to_csv(kline_df, LOCAL_FILE_PATH)
 
     upload_to_hf_datasets(LOCAL_FILE_PATH, end_date)
-
 
 # Run the flow
 if __name__ == "__main__":
