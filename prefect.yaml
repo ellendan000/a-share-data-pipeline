@@ -1,7 +1,11 @@
 name: cicd-deployment
 prefect-version: 3.0.0
 
-# pull: null
+pull:
+- prefect.deployments.steps.git_clone:
+    repository: https://github.com/ellendan000/a-share-data-pipeline.git
+    branch: main
+
 deployments:
   - name: non-fq-daily-kline
     entrypoint: market/non_fq_daily_kline.py:fetch_non_fq_daily_kline
