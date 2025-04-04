@@ -135,6 +135,11 @@ def fetch_daily_index(trade_date: str) -> pd.DataFrame:
 @task
 def upload_to_hf_datasets(file_path: str, end_trade_date: str, huggingface_repo_name: str, repo_file_name: str) -> None:
     """Task 5: 追加新记录到 huggingface datasets"""
+    new_data_df = pd.read_csv(file_path, index_col=['code', 'date'])
+    if new_data_df.empty:
+        print(f"没有新的数据，跳过上传")
+        return
+    
     hf_api = HfApi(token=hf_token)
     existing_file_content = hf_api.hf_hub_download(
         repo_id=huggingface_repo_name,
@@ -142,7 +147,6 @@ def upload_to_hf_datasets(file_path: str, end_trade_date: str, huggingface_repo_
         repo_type="dataset"
     )
     existing_df = pd.read_csv(existing_file_content, index_col=['code', 'date'])
-    new_data_df = pd.read_csv(file_path, index_col=['code', 'date'])
     combined_df = pd.concat([existing_df, new_data_df])
     combined_df.to_csv(file_path, index=True, mode='w', header=True)
     hf_api.upload_file(
