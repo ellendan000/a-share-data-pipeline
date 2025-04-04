@@ -140,8 +140,8 @@ def fetch_non_fq_daily_kline() -> None:
     print(f"主板股票数量: {stock_list.shape[0]}")
 
     end_date = datetime.now().strftime("%Y%m%d")
-    for i, row in stock_list.iterrows():
-        print(f"正在获取 {row['ts_code']} 的日线数据，整体进度 {i+1}/{stock_list.shape[0]}")
+    for idx, (_, row) in enumerate(stock_list.iterrows()):
+        print(f"正在获取 {row['ts_code']} 的日线数据，整体进度 {idx+1}/{stock_list.shape[0]}")
         kline_df = fetch_daily_price(row, '20050101', end_date)
         append_to_csv(kline_df, LOCAL_FILE_PATH)
 

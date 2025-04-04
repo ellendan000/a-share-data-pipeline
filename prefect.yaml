@@ -11,3 +11,7 @@ deployments:
     entrypoint: market/non_fq_daily_kline.py:fetch_non_fq_daily_kline
     work_pool:
       name: remote-work-pool
+  - name: trade-calendar
+    entrypoint: market/trade_calendar.py:fetch_trade_calendar_flow
+    work_pool:
+      name: remote-work-pool
