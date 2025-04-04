@@ -48,7 +48,7 @@ def fetch_stock_list() -> DataFrame:
     return df[df['market'] == '主板']
 
 
-@flow(log_prints=True)
+@task
 def fetch_all_stock_daily_price(stock_list: DataFrame, start_date: str, end_date: str) -> str:
     """Task 3: 抓取所有股票的非复权日线数据"""
     for idx, (_, row) in enumerate(stock_list.iterrows()):
