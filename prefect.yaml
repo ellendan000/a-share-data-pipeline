@@ -11,7 +11,7 @@ deployments:
     entrypoint: market/non_fq_daily_kline.py:fetch_non_fq_daily_kline
     work_pool:
       name: remote-work-pool
-    job_variables:
+    parameters:
       huggingface_repo_name: ellendan/a-share-prices
       repo_file_name: all-prices.csv
   - name: trade-calendar
@@ -22,6 +22,6 @@ deployments:
     entrypoint: market/delta_non_fq_daily_kline.py:fetch_delta_non_fq_daily_kline
     work_pool:
       name: remote-work-pool
-    job_variables:
+    parameters:
       huggingface_repo_name: ellendan/a-share-prices
       repo_file_name: all-prices.csv
