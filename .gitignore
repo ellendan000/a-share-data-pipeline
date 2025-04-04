@@ -175,3 +175,4 @@ cython_debug/
 
 *.csv
 *.csv.gz
+.last_update_date

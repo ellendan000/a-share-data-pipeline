@@ -28,3 +28,4 @@ jobs:
           pipenv sync
           pipenv run prefect deploy -n non-fq-daily-kline 
           pipenv run prefect deploy -n trade-calendar
+          pipenv run prefect deploy -n delta-non-fq-daily-kline
