@@ -27,4 +27,6 @@ deployments:
       repo_file_name: all-prices.csv
     schedules:
       - cron: 0 0 21 ? * MON-FRI
+        slug: "weekday-delta-schedule"
         timezone: Asia/Shanghai
+        active: true
