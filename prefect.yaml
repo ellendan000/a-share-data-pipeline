@@ -26,5 +26,5 @@ deployments:
       huggingface_repo_name: ellendan/a-share-prices
       repo_file_name: all-prices.csv
     schedule:
-        cron: "0 0 21 ? * 1-5"
-        timezone: "Asia/Shanghai"
+      cron: "0 0 21 ? * 1-5"
+      timezone: "Asia/Shanghai"
